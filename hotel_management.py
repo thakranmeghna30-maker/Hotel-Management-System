@@ -9,6 +9,7 @@ connection = mysql.connector.connect(
     database="hotel_management"
 )
 cursor = connection.cursor(buffered=True)
+
 # -------------------- TABLE CREATION --------------------
 def create_tables():
     # Guests table stores personal details of guests
@@ -54,3 +55,65 @@ def create_tables():
     print("-" * 160)
 
 create_tables()
+
+# -------------------- GUEST MANAGEMENT --------------------
+def add_guest():
+    name = input("Enter guest name: ")
+    contact = input("Enter guest contact: ")
+    email = input("Enter guest email: ")
+    num_people = int(input("Enter number of people staying: "))
+
+    cursor.execute(
+        "INSERT INTO guests (name, contact, email, num_people) VALUES (%s, %s, %s, %s)",
+        (name, contact, email, num_people)
+    )
+    connection.commit()
+    print("Guest added successfully!")
+    print("-" * 160)
+
+def view_guests():
+    cursor.execute("SELECT * FROM guests")
+    for guest in cursor.fetchall():
+        print(guest)
+    print("-" * 160)
+
+def search_guest():
+    guest_id = input("Enter guest ID to search: ")
+    cursor.execute("SELECT * FROM guests WHERE id = %s", (guest_id,))
+    guest = cursor.fetchone()
+
+    if guest:
+        print(guest)
+    else:
+        print("Guest not found.")
+    print("-" * 160)
+
+def update_guest():
+    # Allows partial update of guest details
+    guest_id = input("Enter guest ID to update: ")
+    print("Press Enter to skip any field")
+
+    name = input("Enter new name: ")
+    contact = input("Enter new contact: ")
+    email = input("Enter new email: ")
+    num_people = input("Enter new number of people staying: ")
+
+    if name:
+        cursor.execute("UPDATE guests SET name = %s WHERE id = %s", (name, guest_id))
+    if contact:
+        cursor.execute("UPDATE guests SET contact = %s WHERE id = %s", (contact, guest_id))
+    if email:
+        cursor.execute("UPDATE guests SET email = %s WHERE id = %s", (email, guest_id))
+    if num_people:
+        cursor.execute("UPDATE guests SET num_people = %s WHERE id = %s", (num_people, guest_id))
+
+    connection.commit()
+    print("Guest updated successfully!")
+    print("-" * 160)
+
+def delete_guest():
+    guest_id = input("Enter guest ID to delete: ")
+    cursor.execute("DELETE FROM guests WHERE id = %s", (guest_id,))
+    connection.commit()
+    print("Guest deleted successfully!")
+    print("-" * 160)
