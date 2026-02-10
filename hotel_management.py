@@ -336,3 +336,73 @@ def calculate_revenue():
 
     print(f"Total Revenue: ${revenue:.2f}")
 
+# -------------------- MAIN MENU --------------------
+def main():
+    while True:
+        print("\nHotel Management System")
+        print("1. Room Management")
+        print("2. Reservation Management")
+        print("3. Guest Management")
+        print("4. Billing and Finance")
+        print("5. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '3':
+            print("\nGuest Management")
+            print("1. Add Guest")
+            print("2. View Guests")
+            print("3. Search Guest")
+            print("4. Update Guest")
+            print("5. Delete Guest")
+
+            g = input("Enter your choice: ")
+            if g == '1': add_guest()
+            elif g == '2': view_guests()
+            elif g == '3': search_guest()
+            elif g == '4': update_guest()
+            elif g == '5': delete_guest()
+
+        elif choice == '1':
+            print("\nRoom Management")
+            print("1. Add Room")
+            print("2. Delete Room")
+            print("3. List Rooms")
+
+            r = input("Enter your choice: ")
+            if r == '1': add_room()
+            elif r == '2': delete_room()
+            elif r == '3': list_available_rooms()
+
+        elif choice == '2':
+            print("\nReservation Management")
+            print("1. Assign Room")
+            print("2. Make Reservation")
+            print("3. Cancel Reservation")
+            print("4. Modify Reservation")
+
+            r = input("Enter your choice: ")
+            if r == '1': assign_room()
+            elif r == '2': make_reservation()
+            elif r == '3': cancel_reservation()
+            elif r == '4': modify_reservation()
+
+        elif choice == '4':
+            print("\nBilling and Finance")
+            print("1. Generate Bill")
+            print("2. Calculate Revenue")
+
+            b = input("Enter your choice: ")
+            if b == '1': generate_bill()
+            elif b == '2': calculate_revenue()
+
+        elif choice == '5':
+            print("Exiting system...")
+            break
+        else:
+            print("Invalid choice!")
+
+main()
+cursor.close()
+connection.close()
+
