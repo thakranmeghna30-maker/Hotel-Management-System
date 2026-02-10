@@ -151,3 +151,145 @@ def list_available_rooms():
         print(room)
     print("-" * 160)
 
+# -------------------- RESERVATION MANAGEMENT --------------------
+def assign_room():
+    # Assigns a room directly at the hotel (offline booking)
+    guest_id = input("Enter guest ID: ")
+
+    cursor.execute(
+        """SELECT id FROM reservations
+           WHERE guest_id = %s
+           AND check_in_date <= CURDATE()
+           AND check_out_date >= CURDATE()""",
+        (guest_id,)
+    )
+
+    if cursor.fetchone():
+        print("Guest already has a reservation.")
+        return
+
+    cursor.execute("SELECT room_number FROM rooms WHERE available = TRUE LIMIT 1")
+    room = cursor.fetchone()
+
+    if room:
+        room_number = room[0]
+        cursor.execute("UPDATE rooms SET available = FALSE WHERE room_number = %s", (room_number,))
+        cursor.execute(
+            "INSERT INTO reservations (guest_id, room_number, check_in_date, check_out_date) VALUES (%s, %s, CURDATE(), NULL)",
+            (guest_id, room_number)
+        )
+        connection.commit()
+        print("Room assigned successfully!")
+    else:
+        print("No rooms available.")
+
+    print("-" * 160)
+
+def make_reservation():
+    # Online / advance reservation before arrival
+    print("Online Reservation System")
+
+    guest_name = input("Enter your full name: ")
+    contact = input("Enter your contact number: ")
+    email = input("Enter your email address: ")
+    num_people = int(input("Enter the number of people: "))
+
+    cursor.execute("SELECT id FROM guests WHERE name = %s AND contact = %s", (guest_name, contact))
+    guest = cursor.fetchone()
+
+    if guest:
+        guest_id = guest[0]
+    else:
+        cursor.execute(
+            "INSERT INTO guests (name, contact, email, num_people) VALUES (%s, %s, %s, %s)",
+            (guest_name, contact, email, num_people)
+        )
+        connection.commit()
+        guest_id = cursor.lastrowid
+
+    cursor.execute("SELECT DISTINCT room_type FROM rooms WHERE available = TRUE")
+    room_types = cursor.fetchall()
+
+    for i, r in enumerate(room_types, 1):
+        print(f"{i}. {r[0]}")
+
+    selected_room_type = room_types[int(input("Select room type: ")) - 1][0]
+
+    cursor.execute(
+        "SELECT room_number FROM rooms WHERE room_type = %s AND available = TRUE",
+        (selected_room_type,)
+    )
+    room = cursor.fetchone()
+
+    if not room:
+        print("No room available.")
+        return
+
+    check_in = input("Enter check-in date (YYYY-MM-DD): ")
+    check_out = input("Enter check-out date (YYYY-MM-DD): ")
+
+    datetime.strptime(check_in, "%Y-%m-%d")
+    datetime.strptime(check_out, "%Y-%m-%d")
+
+    cursor.execute(
+        "INSERT INTO reservations (guest_id, room_number, check_in_date, check_out_date) VALUES (%s, %s, %s, %s)",
+        (guest_id, room[0], check_in, check_out)
+    )
+    cursor.execute("UPDATE rooms SET available = FALSE WHERE room_number = %s", (room[0],))
+    connection.commit()
+
+    print("Reservation successful!")
+
+def cancel_reservation():
+    # Cancels an existing reservation and frees the room
+    reservation_id = input("Enter reservation ID to cancel: ")
+
+    cursor.execute(
+        "SELECT room_number FROM reservations WHERE id = %s",
+        (reservation_id,)
+    )
+    reservation = cursor.fetchone()
+
+    if reservation:
+        room_number = reservation[0]
+
+        cursor.execute(
+            "DELETE FROM reservations WHERE id = %s",
+            (reservation_id,)
+        )
+        cursor.execute(
+            "UPDATE rooms SET available = TRUE WHERE room_number = %s",
+            (room_number,)
+        )
+
+        connection.commit()
+        print("Reservation cancelled successfully!")
+    else:
+        print("Invalid reservation ID.")
+
+    print("-" * 160)
+
+def modify_reservation():
+    # Allows changing check-in or check-out date of an existing reservation
+    reservation_id = input("Enter reservation ID to modify: ")
+    print("Press Enter to skip any field")
+
+    check_in_date = input("Enter new check-in date (YYYY-MM-DD): ")
+    check_out_date = input("Enter new check-out date (YYYY-MM-DD): ")
+
+    if check_in_date:
+        cursor.execute(
+            "UPDATE reservations SET check_in_date = %s WHERE id = %s",
+            (check_in_date, reservation_id)
+        )
+
+    if check_out_date:
+        cursor.execute(
+            "UPDATE reservations SET check_out_date = %s WHERE id = %s",
+            (check_out_date, reservation_id)
+        )
+
+    connection.commit()
+    print("Reservation modified successfully!")
+    print("-" * 160)
+
