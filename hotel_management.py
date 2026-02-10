@@ -293,3 +293,46 @@ def modify_reservation():
     print("Reservation modified successfully!")
     print("-" * 160)
 
+# -------------------- BILLING & FINANCE --------------------
+def generate_bill():
+    # Calculates bill based on stay duration and room price
+    guest_id = input("Enter guest ID to generate bill: ")
+    if not guest_id.isdigit():
+        print("Invalid guest ID.")
+        return
+
+    cursor.execute("""
+        SELECT rooms.price,
+               DATEDIFF(reservations.check_out_date, reservations.check_in_date),
+               guests.num_people
+        FROM reservations
+        INNER JOIN rooms ON reservations.room_number = rooms.room_number
+        INNER JOIN guests ON reservations.guest_id = guests.id
+        WHERE reservations.guest_id = %s
+        AND reservations.check_out_date IS NOT NULL;
+    """, (guest_id,))
+
+    total = 0
+    for price, days, people in cursor.fetchall():
+        total += price * days * people
+
+    print(f"Total Bill: ${total:.2f}")
+
+def calculate_revenue():
+    # Calculates total hotel revenue
+    cursor.execute("""
+        SELECT rooms.price,
+               DATEDIFF(reservations.check_out_date, reservations.check_in_date),
+               guests.num_people
+        FROM reservations
+        INNER JOIN rooms ON reservations.room_number = rooms.room_number
+        INNER JOIN guests ON reservations.guest_id = guests.id
+        WHERE reservations.check_out_date IS NOT NULL;
+    """)
+
+    revenue = 0
+    for price, days, people in cursor.fetchall():
+        revenue += price * days * people
+
+    print(f"Total Revenue: ${revenue:.2f}")
+
