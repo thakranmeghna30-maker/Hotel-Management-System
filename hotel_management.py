@@ -117,3 +117,37 @@ def delete_guest():
     connection.commit()
     print("Guest deleted successfully!")
     print("-" * 160)
+
+    # -------------------- ROOM MANAGEMENT --------------------
+def add_room():
+    room_number = input("Enter room number: ")
+    room_type = input("Enter room type: ")
+    price = float(input("Enter price per night: "))
+
+    cursor.execute(
+        "INSERT INTO rooms (room_number, room_type, price, available) VALUES (%s, %s, %s, %s)",
+        (room_number, room_type, price, True)
+    )
+    connection.commit()
+    print("Room added successfully!")
+    print("-" * 160)
+
+def delete_room():
+    # Ensures room exists before deleting
+    room_number = input("Enter room number to delete: ")
+
+    cursor.execute("SELECT * FROM rooms WHERE room_number = %s", (room_number,))
+    if not cursor.fetchone():
+        print("Room number not found.")
+        return
+
+    cursor.execute("DELETE FROM rooms WHERE room_number = %s", (room_number,))
+    connection.commit()
+    print(f"Room {room_number} deleted successfully!")
+
+def list_available_rooms():
+    cursor.execute("SELECT * FROM rooms WHERE available = TRUE")
+    for room in cursor.fetchall():
+        print(room)
+    print("-" * 160)
+
